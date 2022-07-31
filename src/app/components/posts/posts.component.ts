@@ -1,4 +1,7 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { Post } from 'src/app/models/Post';
+import { PostService } from 'src/app/services/Post/post.service';
 
 @Component({
   selector: 'app-posts',
@@ -6,10 +9,21 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./posts.component.css']
 })
 export class PostsComponent implements OnInit {
-
-  constructor() { }
+  posts: Post[] = [];
+    constructor(private postService: PostService) { }
 
   ngOnInit(): void {
+   this.getPosts();
   }
+ getPosts() {
+  this.postService.getPosts().subscribe((posts)=>{
+    this.posts=posts;
+  })
+ }
+ delete(post:Post){
+  this.posts=this.posts.filter((p)=>p.id!=post.id);
+  this.postService.deletePost(post).subscribe();
+ }
+  
 
 }
