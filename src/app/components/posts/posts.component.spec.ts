@@ -1,5 +1,7 @@
 
+import { Component, Input } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { of } from "rxjs/internal/observable/of";
 import { Post } from "src/app/models/Post";
 import { PostService } from "src/app/services/Post/post.service";
@@ -11,6 +13,14 @@ import { PostsComponent } from "./posts.component";
     let component: PostsComponent;
     let mockPostService: any;
     let fixture:ComponentFixture<PostsComponent>;
+
+    @Component({
+      selector: 'app-post',
+      template: '<div></div>',
+    })
+    class FakePostComponent{
+      @Input() post!:Post; 
+    }
   
     beforeEach(() => {
       POSTS = [
@@ -34,7 +44,7 @@ import { PostsComponent } from "./posts.component";
       mockPostService = jasmine.createSpyObj(['getPosts', 'deletePost']);
   
       TestBed.configureTestingModule({
-        declarations:[PostsComponent],
+        declarations:[PostsComponent,FakePostComponent],
         providers: [
           {
             provide: PostService,
@@ -54,6 +64,16 @@ import { PostsComponent } from "./posts.component";
         mockPostService.deletePost.and.returnValue(of(true));
         component.posts = POSTS;
       });
+      
+      it('should create one post child elemnet for each post',()=>{
+        mockPostService.getPosts.and.returnValue(of(POSTS));
+        fixture.detectChanges();
+        const debugElement=fixture.debugElement;
+        fixture.detectChanges();
+        const postsElement=debugElement.queryAll(By.css('.posts'))
+        expect(postsElement.length).toBe(POSTS.length);
+        
+      });
       it('should set posts from the service directly',()=>{
         mockPostService.getPosts.and.returnValue(of(POSTS));
         //whenever thsi test case calles the getPosts, it will return
@@ -62,7 +82,7 @@ import { PostsComponent } from "./posts.component";
         fixture.detectChanges();
         // this will help the compiler to understand that some changes rae being made
         expect(component.posts.length).toBe(3);
-      })
+      });
       it('should delete the selected Post from the posts', () => {
         component.delete(POSTS[1]);
   
