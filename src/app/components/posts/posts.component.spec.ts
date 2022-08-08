@@ -1,22 +1,16 @@
 
-import { TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { of } from "rxjs/internal/observable/of";
 import { Post } from "src/app/models/Post";
 import { PostService } from "src/app/services/Post/post.service";
 import { PostsComponent } from "./posts.component";
 
-class mockPostService {
-    getPosts() {}
-  
-    deletePost(post: Post) {
-      return of(true);
-    }
-  }
-  
+
   describe('Posts Component', () => {
     let POSTS: Post[];
     let component: PostsComponent;
-    let postService: any;
+    let mockPostService: any;
+    let fixture:ComponentFixture<PostsComponent>;
   
     beforeEach(() => {
       POSTS = [
@@ -37,27 +31,38 @@ class mockPostService {
         },
       ];
   
-      //mockPostService = jasmine.createSpyObj(['getPosts', 'deletePost']);
+      mockPostService = jasmine.createSpyObj(['getPosts', 'deletePost']);
   
       TestBed.configureTestingModule({
+        declarations:[PostsComponent],
         providers: [
-          PostsComponent,
           {
             provide: PostService,
-            useClass: mockPostService,
+            useValue: mockPostService,
           },
         ],
       });
   
-      component = TestBed.inject(PostsComponent);
-      postService = TestBed.inject(PostService);
+      fixture = TestBed.createComponent(PostsComponent);
+      //this will not create a component, but a fixture 
+      component = fixture.componentInstance;
+
     });
   
     describe('delete', () => {
       beforeEach(() => {
-        //postService.deletePost.and.returnValue(of(true));
+        mockPostService.deletePost.and.returnValue(of(true));
         component.posts = POSTS;
       });
+      it('should set posts from the service directly',()=>{
+        mockPostService.getPosts.and.returnValue(of(POSTS));
+        //whenever thsi test case calles the getPosts, it will return
+        // the POSTS as Observable
+        // but how will the compiler understand this change.
+        fixture.detectChanges();
+        // this will help the compiler to understand that some changes rae being made
+        expect(component.posts.length).toBe(3);
+      })
       it('should delete the selected Post from the posts', () => {
         component.delete(POSTS[1]);
   
@@ -73,9 +78,8 @@ class mockPostService {
       });
   
       it('should call the delete method in Post Service only once', () => {
-        spyOn(postService, 'deletePost').and.callThrough();
         component.delete(POSTS[1]);
-        expect(postService.deletePost).toHaveBeenCalledTimes(1);
+        expect(mockPostService.deletePost).toHaveBeenCalledTimes(1);
       });
     });
   });
