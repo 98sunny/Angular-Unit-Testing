@@ -2,7 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Post } from 'src/app/models/Post';
 import { first } from 'rxjs';
 import { PostComponent } from './post.component';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { DebugElement, NO_ERRORS_SCHEMA } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('Post Component', () => {
   let comp:PostComponent;
@@ -37,5 +38,17 @@ describe('Post Component', () => {
     //now in this nativeElement, we have to search the a element
     const a=postElement.querySelector('a');
     expect(a?.textContent).toContain(post.title);
+  })
+  it('should render the post title in the a tag element using DebugElement',() => {
+    const post:Post = {id:1, title: 'hello',body: 'main content'};
+    comp.post=post;
+    //above, we are adding the post in the @input post element of the component using comp
+    fixture.detectChanges();
+    // this will update the template with the latest changes dones in the html element
+    const postDebugElement:DebugElement=fixture.debugElement;
+    const aElement=postDebugElement.query(By.css('a')).nativeElement;
+    //now we use nativeElement to unwarp the element and get the a element
+    
+    expect(aElement?.textContent).toContain(post.title);
   })
 });
