@@ -1,3 +1,4 @@
+import { TestBed } from "@angular/core/testing";
 import { LoggerService } from "../Logger/logger.service";
 import { CalculatorService } from "./calculator.service";
 
@@ -7,7 +8,14 @@ describe('CalculatorService',() => {
   beforeEach(() => {
     console.log('In Before each');
     mockLoggerService = jasmine.createSpyObj('LoggerService',['log']);
-    calculator = new CalculatorService(mockLoggerService);
+    
+    TestBed.configureTestingModule({
+      providers:[CalculatorService,{
+        provide:LoggerService,usevalue:mockLoggerService
+      }]
+    })
+    // calculator = new CalculatorService(mockLoggerService);
+    calculator=TestBed.inject(CalculatorService);
   })
   it('should add two numbers',() => {
     console.log("In the add test case");
