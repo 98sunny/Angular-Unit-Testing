@@ -5,6 +5,7 @@ import { By } from "@angular/platform-browser";
 import { of } from "rxjs/internal/observable/of";
 import { Post } from "src/app/models/Post";
 import { PostService } from "src/app/services/Post/post.service";
+import { PostComponent } from "../post/post.component";
 import { PostsComponent } from "./posts.component";
 
 
@@ -14,14 +15,7 @@ import { PostsComponent } from "./posts.component";
     let mockPostService: any;
     let fixture:ComponentFixture<PostsComponent>;
 
-    @Component({
-      selector: 'app-post',
-      template: '<div></div>',
-    })
-    class FakePostComponent{
-      @Input() post!:Post; 
-    }
-  
+   
     beforeEach(() => {
       POSTS = [
         {
@@ -44,7 +38,7 @@ import { PostsComponent } from "./posts.component";
       mockPostService = jasmine.createSpyObj(['getPosts', 'deletePost']);
   
       TestBed.configureTestingModule({
-        declarations:[PostsComponent,FakePostComponent],
+        declarations:[PostsComponent,PostComponent],
         providers: [
           {
             provide: PostService,
@@ -58,6 +52,49 @@ import { PostsComponent } from "./posts.component";
       component = fixture.componentInstance;
 
     });
+    it('should create one post child elemnet for each post',()=>{
+      mockPostService.getPosts.and.returnValue(of(POSTS));
+      fixture.detectChanges();
+      const debugElement=fixture.debugElement;
+      fixture.detectChanges();
+      const postsElement=debugElement.queryAll(By.css('.posts'))
+      expect(postsElement.length).toBe(POSTS.length);
+      
+    });
+   describe('Posts component',()=>{
+    it('should set posts from the service directly',()=>{
+      mockPostService.getPosts.and.returnValue(of(POSTS));
+      //whenever thsi test case calles the getPosts, it will return
+      // the POSTS as Observable
+      // but how will the compiler understand this change.
+      fixture.detectChanges();
+      // this will help the compiler to understand that some changes rae being made
+      expect(component.posts.length).toBe(3);
+    });
+    it('should create exact number of Post componenet with PostComponent',()=>{
+      mockPostService.getPosts.and.returnValue(of(POSTS));
+      // this will call the ngOnInit method for both parents and child
+      fixture.detectChanges();
+      // In angular, by default componenet is considered as a directive
+      const postComponentDEs=fixture.debugElement.queryAll(By.directive(PostComponent));
+      // now we have the debug elements
+      expect(postComponentDEs.length).toBe(POSTS.length);
+
+    });
+
+    it('should check whether exact post is sending to PostCompoenent',()=>{
+      mockPostService.getPosts.and.returnValue(of(POSTS));
+      fixture.detectChanges();
+      const postComponentDEs=fixture.debugElement.queryAll(
+        By.directive(PostComponent)
+        );
+        for(let i=0;i<postComponentDEs.length;i++){
+          let postComponentInstance=postComponentDEs[i].componentInstance as PostComponent;
+      expect(postComponentInstance.post?.title).toBe(POSTS[i].title);
+        }
+ 
+    });
+   })
   
     describe('delete', () => {
       beforeEach(() => {
@@ -65,24 +102,7 @@ import { PostsComponent } from "./posts.component";
         component.posts = POSTS;
       });
       
-      it('should create one post child elemnet for each post',()=>{
-        mockPostService.getPosts.and.returnValue(of(POSTS));
-        fixture.detectChanges();
-        const debugElement=fixture.debugElement;
-        fixture.detectChanges();
-        const postsElement=debugElement.queryAll(By.css('.posts'))
-        expect(postsElement.length).toBe(POSTS.length);
-        
-      });
-      it('should set posts from the service directly',()=>{
-        mockPostService.getPosts.and.returnValue(of(POSTS));
-        //whenever thsi test case calles the getPosts, it will return
-        // the POSTS as Observable
-        // but how will the compiler understand this change.
-        fixture.detectChanges();
-        // this will help the compiler to understand that some changes rae being made
-        expect(component.posts.length).toBe(3);
-      });
+      
       it('should delete the selected Post from the posts', () => {
         component.delete(POSTS[1]);
   
